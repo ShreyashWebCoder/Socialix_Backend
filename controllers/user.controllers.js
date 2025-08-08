@@ -51,7 +51,7 @@ exports.signIn = async (req, res) => {
     res.cookie("accessToken", accessToken, {
       maxAge: 1000 * 60 * 60 * 24 * 7,
       httpOnly: true,
-      secure: true,
+      // secure: true,
       sameSite: "none",
       partitioned: true,
     });
@@ -123,9 +123,28 @@ exports.login = async (req, res) => {
   }
 };
 
+// exports.logout = async (req, res) => {
+//   try {
+//     res.clearCookie("accessToken")
+//     return res.status(200).json({
+//       message: "User Logout Successfully !",
+//     });
+//   } catch (error) {
+//     return res.status(400).json({
+//       message: "Error in Logout !",
+//       error: error.message,
+//     });
+//   }
+// };
+
 exports.logout = async (req, res) => {
   try {
-    res.clearCookie("accessToken")
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      sameSite: "none",
+      // secure: true,     
+      partitioned: true, 
+    });
     return res.status(200).json({
       message: "User Logout Successfully !",
     });
