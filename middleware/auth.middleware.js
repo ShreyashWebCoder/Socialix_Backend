@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const authMiddleware = async (req, res, next) => {
     try {
-        const token = req.cookies.accessToken;
+        const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
         if (!token) {
             return res.status(400).json({
                 message: "Token not found !"
@@ -19,9 +19,9 @@ const authMiddleware = async (req, res, next) => {
 
         const user = await User.findById(decoded.token)
             .populate("followers")
-            // .populate("posts")
-            // .populate("replies")
-            // .populate("reposts");
+        // .populate("posts")
+        // .populate("replies")
+        // .populate("reposts");
         if (!user) {
             return res.status(400).json({
                 message: "User not found !"

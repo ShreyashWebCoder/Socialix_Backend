@@ -16,45 +16,52 @@ exports.addPost = async (req, res) => {
                 });
             }
 
-            const post = new Post();
-            if (fields.text) {
-                post.text = fields.text;
-            }
-            if (files.media) {
-                const uploadedImage = await cloudinary.uploader.upload(
-                    files.media.filepath,
-                    {
-                        folder: "SocialixWebApp/Posts",
-                    }
-                );
-                if (!uploadedImage) {
-                    return res.status(400).json({
-                        message: "Error while uploading Post.",
-                    });
+            try {
+                if (!req.user || !req.user._id) {
+                    return res.status(401).json({ message: "Unauthorized" });
                 }
-                post.media = uploadedImage.secure_url;
-                post.public_id = uploadedImage.public_id;
-            }
-            post.admin = req.user._id;
-            const newpost = await post.save();
 
-            await User.findByIdAndUpdate(
-                req.user._id,
-                {
-                    $push: { posts: newpost._id },
-                },
-                { new: true }
-            );
-            res.status(201).json({
-                message: "Post Created Successfully !",
-                newpost,
-            });
+                const post = new Post();
+                if (fields.text) {
+                    post.text = fields.text;
+                }
+                if (files.media) {
+                    const uploadedImage = await cloudinary.uploader.upload(
+                        files.media.filepath,
+                        {
+                            folder: "SocialixWebApp/Posts",
+                        }
+                    );
+                    if (!uploadedImage) {
+                        return res.status(400).json({
+                            message: "Error while uploading Post.",
+                        });
+                    }
+                    post.media = uploadedImage.secure_url;
+                    post.public_id = uploadedImage.public_id;
+                }
+                post.admin = req.user._id;
+                const newpost = await post.save();
+
+                await User.findByIdAndUpdate(
+                    req.user._id,
+                    {
+                        $push: { posts: newpost._id },
+                    },
+                    { new: true }
+                );
+                res.status(201).json({
+                    message: "Post Created Successfully !",
+                    newpost,
+                });
+            } catch (innerErr) {
+
+                res.status(500).json({ message: "Error creating post", error: innerErr.message });
+            }
         });
     } catch (error) {
-        res.status(400).json({
-            message: "Error in Add Post.",
-            err: error,
-        });
+        console.error("Add Post Outer Error:", error);
+        res.status(500).json({ message: "Error in Add Post.", err: error });
     }
 };
 
@@ -271,7 +278,7 @@ exports.singlePost = async (req, res) => {
                     path: "admin",
                 }
             });
-            
+
         if (!postExists) {
             return res.status(400).json({
                 message: "Post not found !",

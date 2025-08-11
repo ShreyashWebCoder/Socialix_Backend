@@ -47,7 +47,6 @@ exports.signIn = async (req, res) => {
         .status(400)
         .json({ message: "Access token generation failed !" });
     }
-
     res.cookie("accessToken", accessToken, {
       maxAge: 1000 * 60 * 60 * 24 * 7,
       httpOnly: true,
@@ -56,7 +55,7 @@ exports.signIn = async (req, res) => {
       partitioned: true,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: `User Sign-in Successfully ! Welcome ${newUser.userName}`,
       data: newUser,
     });
@@ -112,7 +111,7 @@ exports.login = async (req, res) => {
       partitioned: true,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: `User Login Successfully ! Welcome ${userExist.userName}`,
     });
   } catch (error) {
@@ -123,28 +122,15 @@ exports.login = async (req, res) => {
   }
 };
 
-// exports.logout = async (req, res) => {
-//   try {
-//     res.clearCookie("accessToken")
-//     return res.status(200).json({
-//       message: "User Logout Successfully !",
-//     });
-//   } catch (error) {
-//     return res.status(400).json({
-//       message: "Error in Logout !",
-//       error: error.message,
-//     });
-//   }
-// };
-
 exports.logout = async (req, res) => {
   try {
     res.clearCookie("accessToken", {
       httpOnly: true,
       sameSite: "none",
-      // secure: true,     
-      partitioned: true, 
+      secure: true,
+      partitioned: true,
     });
+
     return res.status(200).json({
       message: "User Logout Successfully !",
     });
