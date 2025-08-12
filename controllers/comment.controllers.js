@@ -1,12 +1,13 @@
 const User = require("../models/user.model");
 const Post = require("../models/post.model");
 const Comment = require("../models/comment.model");
-const mongoose = require("mongoose");           
+const mongoose = require("mongoose");
 
 exports.addComment = async (req, res) => {
   try {
     const { id } = req.params;
     const { text } = req.body;
+
     if (!id) {
       return res.status(400).json({
         message: "ID is required !",
@@ -32,12 +33,15 @@ exports.addComment = async (req, res) => {
         message: "User not found !",
       });
     }
+
     const comment = new Comment({
       text,
       post: id,
       admin: userExists._id,
     });
+
     const newComment = await comment.save();
+
     await Post.findByIdAndUpdate(
       id,
       { $push: { comments: newComment._id } },
@@ -48,9 +52,17 @@ exports.addComment = async (req, res) => {
       { $push: { replies: newComment._id } },
       { new: true }
     ).select("-password");
+
+
+    const populatedComment = await Comment.findById(newComment._id)
+      .populate({
+        path: "admin",
+        populate: [{ path: "profilePic" }, { path: "userName" }],
+      })
+
     res.status(201).json({
       message: "Comment Added Successfully !",
-      comment: newComment,
+      comment: populatedComment,
     });
   } catch (error) {
     res.status(400).json({
